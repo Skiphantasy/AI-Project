@@ -5,14 +5,15 @@ import argparse
 import numpy as np
 from PIL import Image, ImageFile
 
-__version__ = '0.3.0'
+__version__ = '0.4.0'
 
 
 IMAGE_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'images')
 DEFAULT_IMAGE_PATH = os.path.join(IMAGE_DIR, 'default-mask.png')
 BLACK_IMAGE_PATH = os.path.join(IMAGE_DIR, 'black-mask.png')
 BLUE_IMAGE_PATH = os.path.join(IMAGE_DIR, 'blue-mask.png')
-RED_IMAGE_PATH = os.path.join(IMAGE_DIR, 'red-mask.png')
+PINK_IMAGE_PATH = os.path.join(IMAGE_DIR, 'pink-mask.png')
+SURGICAL_IMAGE_PATH = os.path.join(IMAGE_DIR, 'surgical-mask-2.png')
 
 
 def cli():
@@ -35,8 +36,8 @@ def cli():
         mask_path = BLACK_IMAGE_PATH
     elif args.blue:
         mask_path = BLUE_IMAGE_PATH
-    elif args.red:
-        mask_path = RED_IMAGE_PATH
+    # elif args.red:
+        # mask_path = RED_IMAGE_PATH
     else:
         mask_path = DEFAULT_IMAGE_PATH
 
@@ -45,7 +46,9 @@ def cli():
 
 def create_mask(image_path):
     pic_path = image_path
-    mask_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'images', 'blue-mask.png')
+    weights = {DEFAULT_IMAGE_PATH: 25, BLACK_IMAGE_PATH: 15, BLUE_IMAGE_PATH: 25, PINK_IMAGE_PATH: 10, SURGICAL_IMAGE_PATH: 25}
+    # mask_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'images', 'blue-mask.png')
+    mask_path = random.choice([x for x in weights for y in range(weights[x])])
     show = False
     model = "hog"
     FaceMasker(pic_path, mask_path, show, model).mask()
