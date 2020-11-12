@@ -46,7 +46,7 @@ def cli():
 
 def create_mask(image_path):
     pic_path = image_path
-    weights = {DEFAULT_IMAGE_PATH: 28, BLACK_IMAGE_PATH: 20, BLUE_IMAGE_PATH: 25, PINK_IMAGE_PATH: 2, SURGICAL_IMAGE_PATH: 25}
+    weights = {DEFAULT_IMAGE_PATH: 25, BLACK_IMAGE_PATH: 15, BLUE_IMAGE_PATH: 25, PINK_IMAGE_PATH: 10, SURGICAL_IMAGE_PATH: 25}
     # mask_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'images', 'blue-mask.png')
     mask_path = random.choice([x for x in weights for y in range(weights[x])])
     show = False
