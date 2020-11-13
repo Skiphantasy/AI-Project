@@ -13,3 +13,4 @@ opencv-python==4.2.0.*
 imutils==0.5.3
 matplotlib==3.3.2
 sklearn
+flask
