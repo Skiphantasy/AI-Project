@@ -7,11 +7,11 @@
 *dataset_original_faces* have faces extracted from [kaggle dataset](https://www.kaggle.com/andrewmvd/face-mask-detection) 
 
 
-""".py 
+```.py
 from dataset_load import load_data
 
 (X_train, y_train), (X_test,y_test) = load_data(test_split = 0.3, path = './dataset/')
 
 x,y = load_raw(path = './dataset/')
 
-"""
+```
