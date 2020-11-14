@@ -56,6 +56,7 @@ def load_raw(path = './dataset/'):
     
     return (x,y)
 
+
 def load_data(test_size= 0.3, path = './dataset/', dc = False):
     
     if dc:
@@ -89,6 +90,7 @@ def load_data(test_size= 0.3, path = './dataset/', dc = False):
     
     x,y = zip(*data)
     x = np.array(x)
+    y = pd.get_dummies(y)
     y = np.array(y)
     
     size = x.shape[0]

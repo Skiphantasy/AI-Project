@@ -10,7 +10,7 @@
 ```.py
 from dataset_load import load_data
 
-(X_train, y_train), (X_test,y_test) = load_data(test_split = 0.3, path = './dataset/')
+(X_train, y_train), (X_test,y_test) = load_data(test_size = 0.3, path = './dataset/')
 
 x,y = load_raw(path = './dataset/')
 
