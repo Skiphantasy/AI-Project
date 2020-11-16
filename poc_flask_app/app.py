@@ -2,8 +2,10 @@
 from flask import Flask, render_template, Response
 import cv2
 import face_recognition
+from flask_bootstrap import Bootstrap
 #Initialize the Flask app
 app = Flask(__name__)
+Bootstrap(app)
 
 camera = cv2.VideoCapture(0)
 
@@ -46,6 +48,10 @@ def gen_frames():
 @app.route('/')
 def index():
     return render_template('index.html')
+
+@app.route('/about')
+def about():
+    return render_template('about.html')
 
 @app.route('/video_feed')
 def video_feed():
