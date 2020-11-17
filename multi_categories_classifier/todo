@@ -1,0 +1,7 @@
+Depurar el dataset, eliminar imagenes como la captura adjunta
+
+Guardar las imagenes en las que falla en validacion, para buscar algun patron 
+
+Cuidado, el split test es random, asi que de una prueba a otra varia la accuracy, maximo hasta ahora 0.966%
+
+Optimizar hiperparametros
