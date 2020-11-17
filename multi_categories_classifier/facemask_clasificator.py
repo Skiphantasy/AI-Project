@@ -35,3 +35,4 @@ metricas = modelo.evaluate(X_test,Y_test,verbose=0)
 print("Accuracy {:5.3}".format(metricas[1]))
 
 
+modelo.save('./last.h5')
