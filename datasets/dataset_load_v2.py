@@ -69,9 +69,10 @@ def load_raw(path = './dataset/'):
     return (x,y)
 
 
-def load_data(test_size= 0.3, path = './dataset/'):
-   
-        
+def load_data(test_size= 0.3, path = './dataset/', random_state = random.seed()):
+
+    random.seed(random_state)
+    
     images = np.array([])
     labels = np.array([])
     label = 0
@@ -94,7 +95,7 @@ def load_data(test_size= 0.3, path = './dataset/'):
     
     data = list(zip(images,labels))
     
-    #random.seed(1234)
+    
     
     random.shuffle(data)
     random.shuffle(data)
