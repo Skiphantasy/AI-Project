@@ -7,7 +7,7 @@ Make sure you have the following packages installed in your virtual environment:
 
 ## Deploy
 
-Run `python app.py` and navigate on your web browser to `<your-public-ip>:5000`.
+Run `python app.py` and navigate on your web browser to `http://<your-public-ip>:5000`.
 
 ## Scripts
 
