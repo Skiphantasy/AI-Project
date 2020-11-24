@@ -13,6 +13,10 @@ Bootstrap(app)
 def index():
     return render_template('index.html')
 
+@app.route('/server')
+def server():
+    return render_template('server.html')
+
 @app.route('/about')
 def about():
     return render_template('about.html')

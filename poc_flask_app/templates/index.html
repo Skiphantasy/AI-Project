@@ -2,13 +2,17 @@
 
 {% block title %} Home {% endblock %}
 
-{% block body %}
-<div class="container">
-    <div class="row">
-        <div class="col-lg-8  offset-lg-2">
-            <h3 class="mt-5">Mask Detector</h3>
-            <img src="{{ url_for('video_feed') }}">
-        </div>
-    </div>
-</div>
-{% endblock %}
+
+<body {% block body_attrs %} onload="cv['onRuntimeInitialized']=()=>{ main() }" {% endblock %}>
+    {% block body %}
+    <button id="startStopButton" type="button" disabled="true">Start</button>
+    <div id="status"></div>
+    <canvas id="output" width=640 height=480 style="max-width: 100%"></canvas>
+
+    <table>
+        <tr id="targetImgs"></tr>
+        <tr id="targetNames"></tr>
+    </table>
+    <button id="addPersonButton" type="button" disabled="true">Add a person</button>
+    {% endblock %}
+</body>
