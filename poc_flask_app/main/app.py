@@ -1,7 +1,6 @@
 #Import necessary libraries
 from flask import Flask, render_template, Response
 import cv2
-import face_recognition
 from flask_bootstrap import Bootstrap
 from realtime_detection import gen_frames
 
@@ -13,6 +12,10 @@ Bootstrap(app)
 def index():
     return render_template('index.html')
 
+@app.route('/server')
+def server():
+    return render_template('server.html')
+    
 @app.route('/about')
 def about():
     return render_template('about.html')
