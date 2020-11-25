@@ -1,0 +1,5 @@
+gunicorn==20.0.4
+numpy==1.19.4
+opencv-python-headless
+Flask
+Flask-Bootstrap==3.3.7.1 
