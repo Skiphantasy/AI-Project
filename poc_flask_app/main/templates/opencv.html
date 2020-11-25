@@ -1,0 +1,18 @@
+{% extends "base_opencv.html" %}
+
+{% block title %} Home {% endblock %}
+
+
+<body {% block body_attrs %} onload="cv['onRuntimeInitialized']=()=>{ main() }" {% endblock %}>
+    {% block body %}
+    <button id="startStopButton" type="button" disabled="true">Start</button>
+    <div id="status"></div>
+    <canvas id="output" width=640 height=480 style="max-width: 100%"></canvas>
+
+    <table>
+        <tr id="targetImgs"></tr>
+        <tr id="targetNames"></tr>
+    </table>
+    <button id="addPersonButton" type="button" disabled="true">Add a person</button>
+    {% endblock %}
+</body>

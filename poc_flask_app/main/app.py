@@ -12,6 +12,10 @@ Bootstrap(app)
 def index():
     return render_template('index.html')
 
+@app.route('/opencv')
+def opencv():
+    return render_template('opencv.html')
+
 @app.route('/server')
 def server():
     return render_template('server.html')
