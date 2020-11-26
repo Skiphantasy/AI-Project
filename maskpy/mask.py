@@ -9,19 +9,24 @@ __version__ = '0.4.0'
 
 
 IMAGE_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'images')
+"""
 DEFAULT_IMAGE_PATH = os.path.join(IMAGE_DIR, 'default-mask.png')
 BLACK_IMAGE_PATH = os.path.join(IMAGE_DIR, 'black-mask.png')
 BLUE_IMAGE_PATH = os.path.join(IMAGE_DIR, 'blue-mask.png')
 PINK_IMAGE_PATH = os.path.join(IMAGE_DIR, 'pink-mask.png')
-SURGICAL_IMAGE_PATH = os.path.join(IMAGE_DIR, 'surgical-mask-2.png')
+SURGICAL_IMAGE_PATH = os.path.join(IMAGE_DIR, 'black-white-lunar-mask.png')
+"""
+
 
 
 
 def create_mask(image_path,save_path='./', location = 'normal'):
     pic_path = image_path
-    weights = {DEFAULT_IMAGE_PATH: 28, BLACK_IMAGE_PATH: 20, BLUE_IMAGE_PATH: 25, PINK_IMAGE_PATH: 1, SURGICAL_IMAGE_PATH: 25}
-    # mask_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'images', 'blue-mask.png')
-    mask_path = random.choice([x for x in weights for y in range(weights[x])])
+    # weights = {DEFAULT_IMAGE_PATH: 28, BLACK_IMAGE_PATH: 20, BLUE_IMAGE_PATH: 25, PINK_IMAGE_PATH: 1, SURGICAL_IMAGE_PATH: 25}
+    # mask_path = random.choice([x for x in weights for y in range(weights[x])])
+    mask_images = [os.path.join(IMAGE_DIR, f) for f in os.listdir(IMAGE_DIR) if os.path.isfile(os.path.join(IMAGE_DIR, f))]
+
+    mask_path =  mask_images[random.randint(0,len(mask_images)-1)]
     show = False
     model = "hog"
     FaceMasker(pic_path, mask_path, show, model,save_path, location).mask()
@@ -316,9 +321,9 @@ class FaceMasker:
         r = random.randint(0, 20)
         if r < 10:
             return self._mask_face_mouth(face_landmark)
-        elif 10<=r<18:
+        elif 10<=r<20:
             return self._mask_face_chin(face_landmark)
-        elif 18<=r<=20:
+        elif r==20:
             return self._mask_face_eyes(face_landmark)
 
 if __name__ == '__main__':
