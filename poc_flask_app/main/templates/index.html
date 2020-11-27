@@ -9,26 +9,34 @@
     <div>
         <h1> Resultados extraídos </h1>
         <div id="resultados"></div>
+        <div id="clasificacion"></div>
     </div>
 </div>
 <script>
 
-    /*
-        Carga la red de detección y el clasificador y posteriormente inicializa el vídeo a través de startVideo()
-    */
-    Promise.all([
-        faceapi.nets.ssdMobilenetv1.loadFromUri("{{ url_for('static', filename='models/') }}"),
-        tf.loadLayersModel("{{ url_for('static', filename='models/tfjs/model.json') }}")
-    ]).then(startVideo)
-
+    // Modelo de TensorFlow.js
+    var model;
+    var classification = {0: 'with_mask', 1: 'without_mask', 2: 'wrong_mask'}
+    // Selectores y propiedades del DOM
     var video = document.querySelector("#videoElement");
     var canvas = document.getElementById('canvas');
     var ctx = canvas.getContext('2d');
 
     /*
+        Carga la red de detección posteriormente inicializa el vídeo a través de startVideo()
+    */
+    Promise.all([
+        faceapi.nets.ssdMobilenetv1.loadFromUri("{{ url_for('static', filename='models/') }}"),
+    ]).then(startVideo)
+
+    /*
         Inicializa el vídeo si está la cámara activa y lo añade como source al elemento <video> del DOM
     */
-    function startVideo() {
+    async function startVideo() {
+
+        // Carga de modelo de TFJS
+        model = await tf.loadLayersModel("{{ url_for('static', filename='models/tfjs/model.json') }}")
+
         if (navigator.mediaDevices.getUserMedia) {
             navigator.mediaDevices.getUserMedia({
                 video: true
@@ -51,6 +59,7 @@
     video.addEventListener('play', function () {
         var $this = this; //cache
         var fps = 0;
+
         /* 
             Función principal de bucle que lee el input de la cámara, realiza la predicción con Face-API y dibuja
             un canvas correspondiente
@@ -81,9 +90,11 @@
     async function predict(img, displaySize, canvas) {
         const detections = await faceapi.detectAllFaces(img, new faceapi.SsdMobilenetv1Options({minConfidence: 0.18, maxFaces: 20}))
         if (detections.length > 0) {
+            // TODO: Comprobar si con esto solamente extrae una cara o varias
             extractFaceFromBox(img, detections[0]._box)
         }
         const resizedDetections = faceapi.resizeResults(detections, displaySize)
+        // TODO: Cambiar el drawDetections con uno personalizado con la predicción del modelo
         faceapi.draw.drawDetections(canvas, resizedDetections)
     }
 
@@ -105,6 +116,17 @@
             document.getElementById("resultados").innerHTML = "";
             faceImages.forEach(e => {
                 document.getElementById("resultados").appendChild(e);
+                // TODO: Limitar los fotogramas donde se realiza la predicción para evitar lag
+                result = model.predict(preprocess(e))
+                // console.log(result.dataSync())
+                let maxValue = result.dataSync().reduce((m, n) => Math.max(m, n))
+                let predictedIndex = result.dataSync().indexOf(maxValue)
+                // Debugging stuff
+                // console.log(result.dataSync())
+                // console.log(result.dataSync().reduce((m, n) => Math.max(m, n)))
+                // console.log(predictedIndex)
+                // Label the face
+                document.getElementById("clasificacion").innerHTML = classification[predictedIndex]
             })
         }
     }
@@ -115,7 +137,7 @@
     */
     function preprocess(img) {
         const example = tf.browser.fromPixels(img);
-        example.print();
+        // example.print();
         const resized = tf.image.resizeBilinear(example, [96, 96]).toFloat()
         const offset = tf.scalar(255.0);
         const normalized = tf.scalar(1.0).sub(resized.div(offset));
