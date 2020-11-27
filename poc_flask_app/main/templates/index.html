@@ -17,7 +17,7 @@
         Carga la red de detección y el clasificador y posteriormente inicializa el vídeo a través de startVideo()
     */
     Promise.all([
-        faceapi.nets.tinyFaceDetector.loadFromUri("{{ url_for('static', filename='models/') }}"),
+        faceapi.nets.ssdMobilenetv1.loadFromUri("{{ url_for('static', filename='models/') }}"),
         tf.loadLayersModel("{{ url_for('static', filename='models/tfjs/model.json') }}")
     ]).then(startVideo)
 
@@ -79,7 +79,7 @@
         Realiza la detección de caras y posteriormente las procesa a través de la función extractFaceFromBox
     */
     async function predict(img, displaySize, canvas) {
-        const detections = await faceapi.detectAllFaces(img, new faceapi.TinyFaceDetectorOptions())
+        const detections = await faceapi.detectAllFaces(img, new faceapi.SsdMobilenetv1Options({minConfidence: 0.18, maxFaces: 20}))
         if (detections.length > 0) {
             extractFaceFromBox(img, detections[0]._box)
         }
