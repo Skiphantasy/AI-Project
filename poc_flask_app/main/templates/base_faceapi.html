@@ -1,4 +1,3 @@
-  
 <!DOCTYPE html>
 <html lang="en">
 
@@ -8,38 +7,38 @@
 
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/css/bootstrap.min.css"
         integrity="sha384-9aIt2nRpC12Uk9gS9baDl411NQApFmC26EwAOH8WgZl5MYYxFfc+NcPb1dKGj7Sk" crossorigin="anonymous">
-    <script src="{{ url_for('static', filename='js/face-api.min.js') }}"></script>
     <!-- La última versión es incompatible -->
     <!-- <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@latest/dist/tf.js"> </script> -->
     <!-- Test with 1.7.4 -->
+    <script src="{{ url_for('static', filename='js/face-api.min.js') }}"></script>
     <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@1.7.4"> </script>
-
 </head>
 
 <body {% block body_attrs %}{% endblock %}>
-    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
-        <div class="container">
-            <!-- Descomentar si se quieren hacer pruebas con TFJS -->
-            <!-- <img src="{{ url_for('static', filename='models/tfjs/sample.jpg') }}" id="sample"> -->
-            <a class="navbar-brand" href="#">GPU-Killers</a>
-            <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent"
-                aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
-                <span class="navbar-toggler-icon"></span>
-            </button>
-
-            <div class="collapse navbar-collapse" id="navbarSupportedContent">
-                <ul class="navbar-nav mr-auto">
-                    <li class="nav-item active">
-                        <a class="nav-link" href="/">Mask Detector (Face-API) <span class="sr-only">(current)</span></a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="/about">About <span class="sr-only">(current)</span></a>
-                    </li>
-                </ul>
-
+    <header>
+        <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+            <div class="container">
+                <!-- Descomentar si se quieren hacer pruebas con TFJS -->
+                <!-- <img src="{{ url_for('static', filename='models/tfjs/sample.jpg') }}" id="sample"> -->
+                <a class="navbar-brand" href="#">GPU-Killers</a>
+                <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent"
+                    aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+    
+                <div class="collapse navbar-collapse" id="navbarSupportedContent">
+                    <ul class="navbar-nav mr-auto">
+                        <li class="nav-item active">
+                            <a class="nav-link" href="/">Mask Detector (Face-API) <span class="sr-only">(current)</span></a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="/about">About <span class="sr-only">(current)</span></a>
+                        </li>
+                    </ul>
+                </div>
             </div>
-        </div>
-    </nav>
+        </nav>
+    </header>
     {% block body %}
 
 
