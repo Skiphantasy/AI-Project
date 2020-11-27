@@ -5,27 +5,18 @@ import os
 import numpy as np
 import matplotlib.pyplot as plt
 import random
+import time
 
-def load_images(folder, raw = False):
+def load_images(folder):
+    
+    dim = (96,96)
     images = []
     for filename in os.listdir(folder):
         
         img = cv2.imread(os.path.join(folder,filename),1)
         if img is not None:
-            if not raw:
-                r = random.randint(0,15)
-                
-                if r < 6: 
-                  img = cv2.resize(img,(16,16))
-                if 6 < r < 11: 
-                  img = cv2.resize(img,(32,32))
-                if r % 2: 
-                  img = cv2.flip(img,1)
-                  
-                img = cv2.resize(img,(64,64))
-                
-            if img is not None:
-                images.append(img)
+            img = cv2.resize(img,dim)          
+            images.append(img)
 
 
     images = [img/255. for img in images]
@@ -33,45 +24,13 @@ def load_images(folder, raw = False):
     return np.array(images)
 
 
+def load_data(test_size= 0.3, path = './dataset/', random_state = random.seed()):
 
-def load_raw(path = './dataset/'):
-    images = np.array([])
-    labels = np.array([])
-    label = 0
-    
-    
-    folders = os.listdir(path)
-    folders.sort()
-    for folder in folders:
+    if not random_state:
+      random_state = int(time.time())
         
-        imgs = load_images(os.path.join(path,folder),True)
-        
-        if label == 0:
-            images = np.array(imgs)
-        else:
-            images = np.concatenate([images,imgs])
-        
-        labels = np.concatenate([labels, np.array([str(folder)]*imgs.shape[0])])
-        label += 1
+    random.seed(int(random_state))
     
-    
-    data = list(zip(images,labels))
-    
-    #random.seed(1234)
-    
-    random.shuffle(data)
-    random.shuffle(data)
-    
-    x,y = zip(*data)
-    x = np.array(x)
-    y = np.array(y)
-    
-    return (x,y)
-
-
-def load_data(test_size= 0.3, path = './dataset/'):
-   
-        
     images = np.array([])
     labels = np.array([])
     label = 0
@@ -87,15 +46,13 @@ def load_data(test_size= 0.3, path = './dataset/'):
             images = np.array(imgs)
         else:
             images = np.concatenate([images,imgs])
-        
+        print("{} tiene {}".format(label,imgs.shape[0]))
         labels = np.concatenate([labels,np.array([label]*imgs.shape[0])])
         label += 1
     
     
     data = list(zip(images,labels))
-    
-    #random.seed(1234)
-    
+        
     random.shuffle(data)
     random.shuffle(data)
     
@@ -112,7 +69,8 @@ def load_data(test_size= 0.3, path = './dataset/'):
     Y_train = y[:split_size]
     Y_test = y[split_size:]
     
-    
+    print("Random State: {}".format(random_state))
+
     return (X_train, Y_train), (X_test,Y_test)
 
 def get_dicc():

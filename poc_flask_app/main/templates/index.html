@@ -3,6 +3,7 @@
 
 {% block title %} Home {% endblock %}
 
+<<<<<<< HEAD
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -31,3 +32,129 @@
     <video id="video" width="720" height="560" autoplay muted></video>
 </body>
 </html>
+=======
+{% block body %}
+<div id="container">
+    <video autoplay="true" id="videoElement"></video>
+    <canvas id="canvas"></canvas>
+    <div>
+        <h1> Resultados extraídos </h1>
+        <div id="resultados"></div>
+    </div>
+</div>
+<script>
+
+    /*
+        Carga la red de detección y el clasificador y posteriormente inicializa el vídeo a través de startVideo()
+    */
+    Promise.all([
+        faceapi.nets.ssdMobilenetv1.loadFromUri("{{ url_for('static', filename='models/') }}"),
+        tf.loadLayersModel("{{ url_for('static', filename='models/tfjs/model.json') }}")
+    ]).then(startVideo)
+
+    var video = document.querySelector("#videoElement");
+    var canvas = document.getElementById('canvas');
+    var ctx = canvas.getContext('2d');
+
+    /*
+        Inicializa el vídeo si está la cámara activa y lo añade como source al elemento <video> del DOM
+    */
+    function startVideo() {
+        if (navigator.mediaDevices.getUserMedia) {
+            navigator.mediaDevices.getUserMedia({
+                video: true
+            })
+                .then(function (stream) {
+                    video.srcObject = stream;
+                })
+                .catch(function (err0r) {
+                    console.log("Something went wrong!");
+                });
+        }
+    }
+
+    // set canvas size = video size when known
+    video.addEventListener('loadedmetadata', function () {
+        canvas.width = video.videoWidth;
+        canvas.height = video.videoHeight;
+    });
+
+    video.addEventListener('play', function () {
+        var $this = this; //cache
+        var fps = 0;
+        /* 
+            Función principal de bucle que lee el input de la cámara, realiza la predicción con Face-API y dibuja
+            un canvas correspondiente
+        */
+        (function loop() {
+            displaySize = {
+                width: this.video.clientWidth,
+                height: this.video.clientHeight
+            };
+            if (!$this.paused && !$this.ended) {
+                fps++
+                fps = fps % 30
+
+                ctx.drawImage($this, 0, 0);
+                canvas.toBlob(function (blob) {
+                    const img = new Image();
+                    img.src = window.URL.createObjectURL(blob);
+                    predict(img, displaySize, canvas);
+                })
+                setTimeout(loop, 1000 / 30); // drawing at 30fps
+            }
+        })();
+    }, 0);
+
+    /*
+        Realiza la detección de caras y posteriormente las procesa a través de la función extractFaceFromBox
+    */
+    async function predict(img, displaySize, canvas) {
+        const detections = await faceapi.detectAllFaces(img, new faceapi.SsdMobilenetv1Options({minConfidence: 0.18, maxFaces: 20}))
+        if (detections.length > 0) {
+            extractFaceFromBox(img, detections[0]._box)
+        }
+        const resizedDetections = faceapi.resizeResults(detections, displaySize)
+        faceapi.draw.drawDetections(canvas, resizedDetections)
+    }
+
+
+    /* 
+        Extrae las caras detectadas por Face-API y las anida en un elemento <div> del DOM
+    */
+    async function extractFaceFromBox(inputImage, box) {
+        const regionsToExtract = [
+            new faceapi.Rect(box.x, box.y, box.width, box.height)
+        ]
+
+        let faceImages = await faceapi.extractFaces(inputImage, regionsToExtract)
+
+        if (faceImages.length == 0) {
+            console.log('Face not found')
+        }
+        else {
+            document.getElementById("resultados").innerHTML = "";
+            faceImages.forEach(e => {
+                document.getElementById("resultados").appendChild(e);
+            })
+        }
+    }
+
+    /*
+        (En esta versión del código no se está utilizando)
+        Realiza el preprocesado de una imagen para el modelo entrenado, que al final lo deja con un shape de [1, 96, 96, 3]
+    */
+    function preprocess(img) {
+        const example = tf.browser.fromPixels(img);
+        example.print();
+        const resized = tf.image.resizeBilinear(example, [96, 96]).toFloat()
+        const offset = tf.scalar(255.0);
+        const normalized = tf.scalar(1.0).sub(resized.div(offset));
+        const batched = normalized.expandDims(0)
+        return batched
+    }
+
+</script>
+
+{% endblock %}
+>>>>>>> main
