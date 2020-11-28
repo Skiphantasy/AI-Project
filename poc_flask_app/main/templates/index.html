@@ -16,7 +16,7 @@
             position: absolute;
         }
 
-        #results {
+        #outcome {
             display: none;
             visibility: hidden;
         }
@@ -28,27 +28,36 @@
             width: 100%;
             height: 10px;
         }
-
     </style>
     <video id="video" width="720" height="560" autoplay muted></video>
-    <div id="results">
-        <h1> Resultados extraídos </h1>
-        <div id="resultados"></div>
+    <div id="outcome">
+        <h1> Results </h1>
+        <div id="results"></div>
+        <div id="classification"></div>
     </div>
-
     <script>
+        // Modelo de TensorFlow.js
         var model;
         var classification = {0: 'with_mask', 1: 'without_mask', 2: 'wrong_mask'}
         var predictedIndex;
         var colors = {0: '#FF1493', 1: '#FFA500', 2: '#32CD32'}
         const video = document.getElementById('video')
+    
+        /*
+            Carga la red de detección posteriormente inicializa el vídeo a través de startVideo()
+        */
         Promise.all([
             faceapi.nets.ssdMobilenetv1.loadFromUri("{{ url_for('static', filename='models/') }}"),
             faceapi.nets.faceRecognitionNet.loadFromUri("{{ url_for('static', filename='models/') }}"),
         ]).then(startVideo)
-
-        async function startVideo() {
+    
+        /*
+            Inicializa el vídeo si está la cámara activa y lo añade como source al elemento <video> del DOM
+        */
+        async function startVideo() { 
+            // Carga de modelo de TFJS
             model = await tf.loadLayersModel("{{ url_for('static', filename='models/tfjs/model.json') }}")
+    
             navigator.getUserMedia(
                 {
                     video: {}
@@ -57,7 +66,7 @@
                 err => console.error(err)
             )
         }
-
+    
         video.addEventListener('play', () => {
             const canvas = faceapi.createCanvasFromMedia(video)
             document.body.append(canvas)
@@ -66,28 +75,30 @@
             setInterval(async () => {
                 const detections = await faceapi.detectAllFaces(video, new faceapi.SsdMobilenetv1Options({minConfidence: 0.18, maxFaces: 20}))
                 const resizedDetections = faceapi.resizeResults(detections, displaySize)
+                canvas.getContext('2d').clearRect(0, 0, canvas.width, canvas.height)
 
+                // Check if there's any face
                 if (resizedDetections.length > 0) {
+                    // Draw the box for every face depending on the prediction
                     resizedDetections.forEach(d =>
                     {
                         extractFaceFromBox(video, d._box)
                         const drawOptions = {
                             boxColor: colors[predictedIndex]
                         }               
-                        canvas.getContext('2d').clearRect(0, 0, canvas.width, canvas.height)
                         const drawBox = new faceapi.draw.DrawBox(d._box, drawOptions)
                         drawBox.draw(canvas)
                     })       
                 } else {
-                    canvas.getContext('2d').clearRect(0, 0, canvas.width, canvas.height)
+                    //canvas.getContext('2d').clearRect(0, 0, canvas.width, canvas.height)
                     //faceapi.draw.drawDetections(canvas, resizedDetections)
                 }
             }, 100)
         })
-
-        /* 
-            Extrae las caras detectadas por Face-API y las anida en un elemento <div> del DOM
-        */
+    
+            /* 
+                Extrae las caras detectadas por Face-API y las anida en un elemento <div> del DOM
+            */
         async function extractFaceFromBox(inputImage, box) {
             const regionsToExtract = [
                 new faceapi.Rect(box.x, box.y, box.width, box.height)
@@ -99,9 +110,9 @@
                 console.log('Face not found')
             }
             else {
-                document.getElementById("resultados").innerHTML = "";
+                document.getElementById("results").innerHTML = "";
                 faceImages.forEach(e => {
-                    document.getElementById("resultados").appendChild(e);
+                    document.getElementById("results").appendChild(e);
                     // TODO: Limitar los fotogramas donde se realiza la predicción para evitar lag
                     result = model.predict(preprocess(e))
                     // console.log(result.dataSync())
@@ -112,7 +123,7 @@
                     // console.log(result.dataSync().reduce((m, n) => Math.max(m, n)))
                     // console.log(predictedIndex)
                     // Label the face
-                    document.getElementById("clasificacion").innerHTML = classification[predictedIndex]
+                    document.getElementById("classification").innerHTML = classification[predictedIndex]
                 })
             }
         }
@@ -123,10 +134,14 @@
         */
         function preprocess(img) {
             const example = tf.browser.fromPixels(img);
-            example.print();
             const resized = tf.image.resizeBilinear(example, [96, 96]).toFloat()
+            
+            //Not sure if it works better with 2 lines below or not. It needs to be tested
+            const a =temp = tf.unstack(resized, 2)
+            const b = tf.stack([temp[2], temp[1], temp[0]], 2)
+
             const offset = tf.scalar(255.0);
-            const normalized = tf.scalar(1.0).sub(resized.div(offset));
+            const normalized = tf.scalar(1.0).sub(b.div(offset));
             const batched = normalized.expandDims(0)
             return batched
         }
