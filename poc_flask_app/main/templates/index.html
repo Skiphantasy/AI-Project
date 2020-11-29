@@ -35,98 +35,98 @@
     }
 
 
-/* loadbar */
+    /* loadbar */
 
     #container_modal {
-            display: none;
-            justify-content: center;
-            align-items: center;
-            position: absolute;
-            left: 0;
-            top: 0;
-            z-index: 10;
-            background-color: rgba(0, 0, 0, 0.3);
-            width: 100%;
-            height: 100%;
+        display: none;
+        justify-content: center;
+        align-items: center;
+        position: absolute;
+        left: 0;
+        top: 0;
+        z-index: 10;
+        background-color: rgba(0, 0, 0, 0.3);
+        width: 100%;
+        height: 100%;
+    }
+
+    #container_loadbar {
+        display: flex;
+        justify-content: space-around;
+        align-items: flex-start;
+        background-color: white;
+        z-index: 0;
+        min-width: 50%;
+        min-height: 10%;
+        border-radius: .5rem;
+        padding: 0.5rem;
+    }
+
+    #message {
+        display: flex;
+        justify-content: center;
+        width: 100%;
+    }
+
+    #progress {
+        width: 100%;
+        height: 2rem;
+        color: black;
+        display: inline;
+    }
+
+    #progress-bar {
+        border-color: black;
+        width: 100%;
+        height: 100%;
+        top: auto;
+        border-radius: .5rem;
+
+    }
+
+    .progress-bar.indeterminate {
+        position: relative;
+        animation: progress-indeterminate 4s linear infinite forwards;
+    }
+
+    @keyframes progress-indeterminate {
+        0% {
+            left: 0%;
+            width: 0%;
         }
 
-        #container_loadbar {
-            display: flex;
-            justify-content: space-around;
-            align-items: flex-start;
-            background-color: white;
-            z-index: 0;
-            min-width: 50%;
-            min-height: 10%;
-            border-radius: .5rem;
-            padding: 0.5rem;
+        5% {
+            left: 0%;
+            width: 30%;
         }
 
-        #message {
-            display: flex;
-            justify-content: center;
-            width: 100%;
+
+        45% {
+            left: 70%;
+            width: 30%;
         }
 
-        #progress {
-            width: 100%;
-            height: 2rem;
-            color: black;
-            display: inline;
+        50% {
+            left: 100%;
+            width: 0%;
         }
 
-        #progress-bar {
-            border-color: black;
-            width: 100%;
-            height: 100%;
-            top: auto;
-            border-radius: .5rem;
-
+        55% {
+            left: 70%;
+            width: 30%;
         }
 
-        .progress-bar.indeterminate {
-            position: relative;
-            animation: progress-indeterminate 4s linear infinite forwards;
+        95% {
+            left: 0%;
+            width: 30%;
         }
 
-        @keyframes progress-indeterminate {
-            0% {
-                left: 0%;
-                width: 0%;
-            }
-
-            5% {
-                left: 0%;
-                width: 30%;
-            }
-
-
-            45% {
-                left: 70%;
-                width: 30%;
-            }
-
-            50% {
-                left: 100%;
-                width: 0%;
-            }
-
-            55% {
-                left: 70%;
-                width: 30%;
-            }
-
-            95% {
-                left: 0%;
-                width: 30%;
-            }
-
-            100% {
-                left: 0%;
-                width: 0%;
-            }
-
+        100% {
+            left: 0%;
+            width: 0%;
         }
+
+    }
 
     @media screen and (max-width: 600px) {
         #video {
@@ -182,22 +182,46 @@
     */
     Promise.all([
         faceapi.nets.ssdMobilenetv1.loadFromUri("{{ url_for('static', filename='models/') }}")
-    ]).then(startVideo)
+    ]).then(loadModel)
 
     /*
         Inicializa el vídeo si está la cámara activa y lo añade como source al elemento <video> del DOM
     */
-    async function startVideo() {
-        change_message("Loading Model...")
 
+    async function loadModel() {
         model = await tf.loadLayersModel("{{ url_for('static', filename='models/tfjs/model.json') }}")
-        
+        startVideo()
+    }
+
+    function startVideo(source = 'default') {
+        change_message("Loading Model...")
+        navigator.getMedia = (navigator.getUserMedia ||
+            navigator.webkitGetUserMedia ||
+            navigator.mozGetUserMedia);
+
         // console.log(model.summary())
 
         // desactivar la barra de carga
-        navigator.getUserMedia({
-                video: {}
-            },
+        var constraints = {}
+        if (source === 'defualt') {
+            constraints = {
+                audio: false,
+                video: {
+                    facingMode: 'user'
+                }
+            }
+        }else{
+            constraints = {
+                audio: false,
+                video: {
+                    facingMode: 'enviroment'
+                }
+            }
+        }
+
+
+
+        navigator.getMedia(constraints,
             stream => video.srcObject = stream,
             err => console.error(err)
         )
@@ -221,15 +245,16 @@
         // Hide loadbar
         change_message("Complete")
         hide_loadbar()
-        
+
         setInterval(async () => {
 
             const detections = await faceapi.detectAllFaces(video, ssdMobilenetOptions)
             const resizedDetections = faceapi.resizeResults(detections, displaySize)
 
             ctx.clearRect(0, 0, canvas.width, canvas.height)
-            await extractFaceFromBox(video, resizedDetections)
+            // await extractFaceFromBox(video, resizedDetections)
             resizedDetections.forEach(async (d, i) => {
+                await extractFaceFromBox(video, d,i)
                 const drawBox = new faceapi.draw.DrawBox(d._box, {
                     boxColor: colors[predictions[i]],
                     label: classification[predictions[i]]
@@ -240,15 +265,24 @@
     })
 
 
-    async function extractFaceFromBox(inputImage, detections) {
-    
-        var faceImages = await faceapi.extractFaces(inputImage, detections)
-        faceImages.forEach(async (img, i) => {
-            var result = await model.predict(preprocess(img))
-            data = result.dataSync()
-            predictions[i] = data.indexOf(Math.max(...data))
-        })
-    }
+    // async function extractFaceFromBox(inputImage, detections) { 
+
+    //     const faceImages = await faceapi.extractFaces(inputImage, detections)
+    //     faceImages.forEach(async (img, i) => {
+    //         const result = await model.predict(preprocess(img))
+    //         const data = result.dataSync()
+    //         predictions[i] = data.indexOf(Math.max(...data))
+    //     })
+    // }
+
+    async function extractFaceFromBox(inputImage, detection,ind) { 
+
+    const faceImage = await faceapi.extractFaces(inputImage, [detection])
+    const result = await model.predict(preprocess(faceImage[0]))
+    const data = result.dataSync()
+    predictions[ind] = data.indexOf(Math.max(...data))
+
+}
 
     function preprocess(img) {
         const image = tf.browser.fromPixels(img);
@@ -262,17 +296,17 @@
     // loadbar
 
     function show_loadbar() {
-            document.querySelector('#container_modal').style.display = 'flex'
-        }
+        document.querySelector('#container_modal').style.display = 'flex'
+    }
 
-        function hide_loadbar() {
-            document.querySelector('#container_modal').style.display = 'none'
-        }
+    function hide_loadbar() {
+        document.querySelector('#container_modal').style.display = 'none'
+    }
 
 
-        function change_message(message = "Downloading...") {
-            var mesg = document.getElementById("message");
-            mesg.textContent = message
-        }
+    function change_message(message = "Downloading...") {
+        var mesg = document.getElementById("message");
+        mesg.textContent = message
+    }
 </script>
 {% endblock %}
