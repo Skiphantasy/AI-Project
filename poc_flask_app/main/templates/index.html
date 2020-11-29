@@ -157,11 +157,15 @@
         </div>
     </div>
 </div>
+
+
+<button id="toggleCamera" onclick="restart()">Cam</button>
 <script>
     // Modelo de TensorFlow.js
     change_message("Loading Face Detector")
     show_loadbar()
-
+    var currentStream
+    var cameraSelector = true
     var model;
     var classification = {
         0: 'with_mask',
@@ -176,6 +180,10 @@
     const video = document.getElementById('video');
     var displaySize;
     var predictions = []
+
+    navigator.getMedia = (navigator.getUserMedia ||
+        navigator.webkitGetUserMedia ||
+        navigator.mozGetUserMedia);
     /*
         Carga la red de detección posteriormente inicializa el vídeo a través de startVideo()
         Activar la barra de carga
@@ -189,40 +197,45 @@
     */
 
     async function loadModel() {
+        change_message("Loading Model...")
+
         model = await tf.loadLayersModel("{{ url_for('static', filename='models/tfjs/model.json') }}")
+        // console.log(model.summary())
+
         startVideo()
     }
 
-    function startVideo(source = 'default') {
-        change_message("Loading Model...")
-        navigator.getMedia = (navigator.getUserMedia ||
-            navigator.webkitGetUserMedia ||
-            navigator.mozGetUserMedia);
 
-        // console.log(model.summary())
 
-        // desactivar la barra de carga
-        var constraints = {}
-        if (source === 'defualt') {
-            constraints = {
-                audio: false,
-                video: {
-                    facingMode: 'user'
-                }
+    function restart() {
+        currentStream.getTracks().forEach(t => t.stop())
+        start()
+    }
+
+
+    function startVideo() {
+
+
+        if (cameraSelector) {
+            cameraSelector = false
+            const constraints = {
+                video: {}
             }
-        }else{
-            constraints = {
-                audio: false,
+
+        } else {
+            cameraSelector = true
+
+            const constraints = {
                 video: {
-                    facingMode: 'enviroment'
+                    facingMode: {
+                        ideal: "environment"
+                    }
                 }
             }
         }
 
-
-
         navigator.getMedia(constraints,
-            stream => video.srcObject = stream,
+            stream => video.srcObject = currentStream = stream ,
             err => console.error(err)
         )
     }
@@ -254,7 +267,7 @@
             ctx.clearRect(0, 0, canvas.width, canvas.height)
             // await extractFaceFromBox(video, resizedDetections)
             resizedDetections.forEach(async (d, i) => {
-                await extractFaceFromBox(video, d,i)
+                await extractFaceFromBox(video, d, i)
                 const drawBox = new faceapi.draw.DrawBox(d._box, {
                     boxColor: colors[predictions[i]],
                     label: classification[predictions[i]]
@@ -275,14 +288,14 @@
     //     })
     // }
 
-    async function extractFaceFromBox(inputImage, detection,ind) { 
+    async function extractFaceFromBox(inputImage, detection, ind) {
 
-    const faceImage = await faceapi.extractFaces(inputImage, [detection])
-    const result = await model.predict(preprocess(faceImage[0]))
-    const data = result.dataSync()
-    predictions[ind] = data.indexOf(Math.max(...data))
+        const faceImage = await faceapi.extractFaces(inputImage, [detection])
+        const result = await model.predict(preprocess(faceImage[0]))
+        const data = result.dataSync()
+        predictions[ind] = data.indexOf(Math.max(...data))
 
-}
+    }
 
     function preprocess(img) {
         const image = tf.browser.fromPixels(img);
