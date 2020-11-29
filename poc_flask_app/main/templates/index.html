@@ -34,6 +34,100 @@
         min-height: 560px;
     }
 
+
+/* loadbar */
+
+    #container_modal {
+            display: none;
+            justify-content: center;
+            align-items: center;
+            position: absolute;
+            left: 0;
+            top: 0;
+            z-index: 10;
+            background-color: rgba(0, 0, 0, 0.3);
+            width: 100%;
+            height: 100%;
+        }
+
+        #container_loadbar {
+            display: flex;
+            justify-content: space-around;
+            align-items: flex-start;
+            background-color: white;
+            z-index: 0;
+            min-width: 50%;
+            min-height: 10%;
+            border-radius: .5rem;
+            padding: 0.5rem;
+        }
+
+        #message {
+            display: flex;
+            justify-content: center;
+            width: 100%;
+        }
+
+        #progress {
+            width: 100%;
+            height: 2rem;
+            color: black;
+            display: inline;
+        }
+
+        #progress-bar {
+            border-color: black;
+            width: 100%;
+            height: 100%;
+            top: auto;
+            border-radius: .5rem;
+
+        }
+
+        .progress-bar.indeterminate {
+            position: relative;
+            animation: progress-indeterminate 4s linear infinite forwards;
+        }
+
+        @keyframes progress-indeterminate {
+            0% {
+                left: 0%;
+                width: 0%;
+            }
+
+            5% {
+                left: 0%;
+                width: 30%;
+            }
+
+
+            45% {
+                left: 70%;
+                width: 30%;
+            }
+
+            50% {
+                left: 100%;
+                width: 0%;
+            }
+
+            55% {
+                left: 70%;
+                width: 30%;
+            }
+
+            95% {
+                left: 0%;
+                width: 30%;
+            }
+
+            100% {
+                left: 0%;
+                width: 0%;
+            }
+
+        }
+
     @media screen and (max-width: 600px) {
         #video {
             min-height: 375px;
@@ -52,8 +146,22 @@
     <div id="results"></div>
     <div id="classification"></div>
 </div>
+
+<div id="container_modal">
+    <div id="container_loadbar">
+        <div id="progress">
+            <div id="message">Downloading...</div>
+            <div id="progress-bar" class="progress-bar progress-bar-striped progress-bar-animated bg-info indeterminate
+                role=" progressbar" aria-valuemin="0" aria-valuemax="100">
+            </div>
+        </div>
+    </div>
+</div>
 <script>
     // Modelo de TensorFlow.js
+    change_message("Loading Face Detector")
+    show_loadbar()
+
     var model;
     var classification = {
         0: 'with_mask',
@@ -80,8 +188,10 @@
         Inicializa el vídeo si está la cámara activa y lo añade como source al elemento <video> del DOM
     */
     async function startVideo() {
+        change_message("Loading Model...")
 
         model = await tf.loadLayersModel("{{ url_for('static', filename='models/tfjs/model.json') }}")
+        
         // console.log(model.summary())
 
         // desactivar la barra de carga
@@ -108,7 +218,10 @@
             minConfidence: 0.20,
             maxFaces: 20
         })
-
+        // Hide loadbar
+        change_message("Complete")
+        hide_loadbar()
+        
         setInterval(async () => {
 
             const detections = await faceapi.detectAllFaces(video, ssdMobilenetOptions)
@@ -143,5 +256,23 @@
         const normalized = tf.div(resized, tf.scalar(255.0)) //tf.scalar(1.0).sub();
         return normalized.expandDims(0)
     }
+
+
+
+    // loadbar
+
+    function show_loadbar() {
+            document.querySelector('#container_modal').style.display = 'flex'
+        }
+
+        function hide_loadbar() {
+            document.querySelector('#container_modal').style.display = 'none'
+        }
+
+
+        function change_message(message = "Downloading...") {
+            var mesg = document.getElementById("message");
+            mesg.textContent = message
+        }
 </script>
 {% endblock %}
