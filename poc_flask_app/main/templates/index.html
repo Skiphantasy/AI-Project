@@ -128,6 +128,26 @@
 
     }
 
+    #videoElement {
+        display: block;
+        width: 500px;
+        height: 375px;
+        background-color: #666;
+    }
+
+    #toggleCamera {
+        position: absolute;
+        margin: 1rem;
+        bottom: 0;
+        right: 0;
+        width: 4rem;
+        height: 4rem;
+        color: white;
+        background-color: red;
+        border-radius: 50%;
+        border-color: transparent;
+    }
+
     @media screen and (max-width: 600px) {
         #video {
             min-height: 375px;
@@ -215,17 +235,18 @@
 
     function startVideo() {
 
-
+        var constraints
+        
         if (cameraSelector) {
             cameraSelector = false
-            const constraints = {
+            constraints = {
                 video: {}
             }
 
         } else {
             cameraSelector = true
 
-            const constraints = {
+            constraints = {
                 video: {
                     facingMode: {
                         ideal: "environment"
@@ -235,7 +256,7 @@
         }
 
         navigator.getMedia(constraints,
-            stream => video.srcObject = currentStream = stream ,
+            stream => video.srcObject = currentStream = stream,
             err => console.error(err)
         )
     }
