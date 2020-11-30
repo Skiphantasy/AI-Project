@@ -159,6 +159,19 @@
             background-color: #343a40 !important;
         }
     }
+
+    /* Lock de screen en CSS */
+    @media screen and (min-width: 320px) and (max-width: 767px) and (orientation: landscape) {
+        html {
+            transform: rotate(-90deg);
+            transform-origin: left top;
+            width: 100vh;
+            overflow-x: hidden;
+            position: absolute;
+            top: 100%;
+            left: 0;
+        }
+    }
 </style>
 <video id="video" autoplay muted></video>
 <div id="outcome">
@@ -279,9 +292,9 @@
 
             ctx.clearRect(0, 0, canvas.width, canvas.height)
 
-            resizedDetections.forEach(async (d,i) => {
+            resizedDetections.forEach(async (d, i) => {
                 // const prediction = await extractFaceFromBox(video, d._box)
-                await extractFaceFromBox(video, d._box,i)
+                await extractFaceFromBox(video, d._box, i)
                 const prediction = predictions[i]
                 const drawBox = new faceapi.draw.DrawBox(d._box, {
                     boxColor: colors[prediction],
@@ -294,7 +307,7 @@
     })
 
 
-    async function extractFaceFromBox(inputImage, box, ind=0) {
+    async function extractFaceFromBox(inputImage, box, ind = 0) {
         const faceImage = await faceapi.extractFaces(inputImage, [new faceapi.Rect(box.x, box.y, box.width, box
             .height)])
         const result = await model.predict(preprocess(faceImage[0]))
