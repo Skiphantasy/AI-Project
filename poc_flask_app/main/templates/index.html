@@ -199,7 +199,7 @@
     }
     const video = document.getElementById('video');
     var displaySize;
-
+    var predictions = []
     navigator.getMedia = (navigator.getUserMedia ||
         navigator.webkitGetUserMedia ||
         navigator.mozGetUserMedia);
@@ -279,8 +279,10 @@
 
             ctx.clearRect(0, 0, canvas.width, canvas.height)
 
-            resizedDetections.forEach(async (d) => {
-                const prediction = await extractFaceFromBox(video, d._box)
+            resizedDetections.forEach(async (d,i) => {
+                // const prediction = await extractFaceFromBox(video, d._box)
+                await extractFaceFromBox(video, d._box,i)
+                const prediction = predictions[i]
                 const drawBox = new faceapi.draw.DrawBox(d._box, {
                     boxColor: colors[prediction],
                     label: classification[prediction]
@@ -292,12 +294,14 @@
     })
 
 
-    async function extractFaceFromBox(inputImage, box, ind) {
+    async function extractFaceFromBox(inputImage, box, ind=0) {
         const faceImage = await faceapi.extractFaces(inputImage, [new faceapi.Rect(box.x, box.y, box.width, box
             .height)])
         const result = await model.predict(preprocess(faceImage[0]))
         const data = result.dataSync()
-        return data.indexOf(Math.max(...data))
+        const prediction = data.indexOf(Math.max(...data))
+        // return prediction
+        predictions[ind] = prediction
     }
 
     function preprocess(img) {
