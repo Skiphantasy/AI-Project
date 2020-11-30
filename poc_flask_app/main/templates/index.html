@@ -171,8 +171,8 @@
     <div id="container_loadbar">
         <div id="progress">
             <div id="message">Downloading...</div>
-            <div id="progress-bar" class="progress-bar progress-bar-striped progress-bar-animated bg-info indeterminate
-                role=" progressbar" aria-valuemin="0" aria-valuemax="100">
+            <div id="progress-bar" class="progress-bar progress-bar-striped progress-bar-animated bg-info indeterminate"
+                role="progressbar" aria-valuemin="0" aria-valuemax="100">
             </div>
         </div>
     </div>
@@ -181,40 +181,35 @@
 
 <button id="toggleCamera" onclick="restart()">Cam</button>
 <script>
-    // Modelo de TensorFlow.js
     change_message("Loading Face Detector")
     show_loadbar()
     var currentStream
     var cameraSelector = true
+    // Modelo de TensorFlow.js
     var model;
-    var classification = {
+    const classification = {
         0: 'with_mask',
         1: 'without_mask',
         2: 'wrong_mask'
     }
-    var colors = {
-        0: 'green',
-        1: 'red',
-        2: 'blue'
+    const colors = {
+        0: '#00ff00',
+        1: '#ff0000',
+        2: '#0000ff'
     }
     const video = document.getElementById('video');
     var displaySize;
-    var predictions = []
 
     navigator.getMedia = (navigator.getUserMedia ||
         navigator.webkitGetUserMedia ||
         navigator.mozGetUserMedia);
     /*
         Carga la red de detección posteriormente inicializa el vídeo a través de startVideo()
-        Activar la barra de carga
     */
     Promise.all([
         faceapi.nets.ssdMobilenetv1.loadFromUri("{{ url_for('static', filename='models/') }}")
     ]).then(loadModel)
 
-    /*
-        Inicializa el vídeo si está la cámara activa y lo añade como source al elemento <video> del DOM
-    */
 
     async function loadModel() {
         change_message("Loading Model...")
@@ -225,8 +220,6 @@
         startVideo()
     }
 
-
-
     function restart() {
         currentStream.getTracks().forEach(t => t.stop())
         start()
@@ -236,7 +229,7 @@
     function startVideo() {
 
         var constraints
-        
+
         if (cameraSelector) {
             cameraSelector = false
             constraints = {
@@ -265,7 +258,6 @@
         const canvas = faceapi.createCanvasFromMedia(video)
         const ctx = canvas.getContext('2d')
         document.body.append(canvas)
-        // Deberia actualizarse si cambia el tamaño de la pantalla
         const displaySize = {
             width: parseInt(window.getComputedStyle(video).width),
             height: parseInt(window.getComputedStyle(video).height)
@@ -286,36 +278,26 @@
             const resizedDetections = faceapi.resizeResults(detections, displaySize)
 
             ctx.clearRect(0, 0, canvas.width, canvas.height)
-            // await extractFaceFromBox(video, resizedDetections)
-            resizedDetections.forEach(async (d, i) => {
-                await extractFaceFromBox(video, d, i)
+
+            resizedDetections.forEach(async (d) => {
+                const prediction = await extractFaceFromBox(video, d._box)
                 const drawBox = new faceapi.draw.DrawBox(d._box, {
-                    boxColor: colors[predictions[i]],
-                    label: classification[predictions[i]]
+                    boxColor: colors[prediction],
+                    label: classification[prediction]
                 })
                 drawBox.draw(canvas)
             })
-        }, 400)
+
+        }, 500) //Las tareas tardan en PC unos 200milisegundos 
     })
 
 
-    // async function extractFaceFromBox(inputImage, detections) { 
-
-    //     const faceImages = await faceapi.extractFaces(inputImage, detections)
-    //     faceImages.forEach(async (img, i) => {
-    //         const result = await model.predict(preprocess(img))
-    //         const data = result.dataSync()
-    //         predictions[i] = data.indexOf(Math.max(...data))
-    //     })
-    // }
-
-    async function extractFaceFromBox(inputImage, detection, ind) {
-
-        const faceImage = await faceapi.extractFaces(inputImage, [detection])
+    async function extractFaceFromBox(inputImage, box, ind) {
+        const faceImage = await faceapi.extractFaces(inputImage, [new faceapi.Rect(box.x, box.y, box.width, box
+            .height)])
         const result = await model.predict(preprocess(faceImage[0]))
         const data = result.dataSync()
-        predictions[ind] = data.indexOf(Math.max(...data))
-
+        return data.indexOf(Math.max(...data))
     }
 
     function preprocess(img) {
