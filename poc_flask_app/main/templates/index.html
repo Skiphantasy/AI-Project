@@ -146,6 +146,7 @@
         background-color: red;
         border-radius: 50%;
         border-color: transparent;
+        z-index: 0;
     }
 
     @media screen and (max-width: 600px) {
@@ -197,6 +198,7 @@
     change_message("Loading Face Detector")
     show_loadbar()
     var currentStream
+    var currentInterval
     var cameraSelector = true
     // Modelo de TensorFlow.js
     var model;
@@ -235,6 +237,8 @@
 
     function restart() {
         currentStream.getTracks().forEach(t => t.stop())
+        document.querySelector('#canvas').remove()
+        clearInterval(currentInterval)
         startVideo()
     }
 
@@ -271,6 +275,7 @@
         const canvas = faceapi.createCanvasFromMedia(video)
         const ctx = canvas.getContext('2d')
         document.body.append(canvas)
+        canvas.setAttribute('id',"canvas")
         const displaySize = {
             width: parseInt(window.getComputedStyle(video).width),
             height: parseInt(window.getComputedStyle(video).height)
@@ -285,7 +290,7 @@
         change_message("Complete")
         hide_loadbar()
 
-        setInterval(async () => {
+        currentInterval = setInterval(async () => {
 
             const detections = await faceapi.detectAllFaces(video, ssdMobilenetOptions)
             const resizedDetections = faceapi.resizeResults(detections, displaySize)
