@@ -142,20 +142,20 @@
     }
 
     #toggleModel {
-            display: block;
-            position: absolute;
-            margin: 1rem;
-            bottom: 0;
-            left: 0;
-            width: 4rem;
-            height: 4rem;
-            color: white;
-            background-color: #fa6023;
-            border-radius: 50%;
-            border-color: transparent;
-            z-index: 50;
+        display: block;
+        position: absolute;
+        margin: 1rem;
+        bottom: 0;
+        left: 0;
+        width: 4rem;
+        height: 4rem;
+        color: white;
+        background-color: #fa6023;
+        border-radius: 50%;
+        border-color: transparent;
+        z-index: 50;
 
-        }
+    }
 
     @media screen and (max-width: 600px) {
         #video {
@@ -184,7 +184,7 @@
 
         }
 
-       
+
     }
 
     /* Lock de screen en CSS */
@@ -219,7 +219,7 @@
 </div>
 
 
-<button id="toggleCamera" onclick="restart_video()">Cam</button>
+<button id="toggleCamera" onclick="changeCamera()">Cam</button>
 <button id="toggleModel" onclick="changeModel()">Model</button>
 
 <script>
@@ -245,6 +245,9 @@
     var displaySize;
     var isMobile = false
     var predictions = []
+    var constraints = {
+        video: {}
+    }
     navigator.getMedia = (navigator.getUserMedia ||
         navigator.webkitGetUserMedia ||
         navigator.mozGetUserMedia);
@@ -291,29 +294,28 @@
         // console.log(model.summary())
         startVideo()
     }
-    function changeModel(){
+
+    function changeModel() {
         isMobile = !isMobile
         stop_video()
         loadModel()
     }
-    
+
     function stop_video() {
         currentStream.getTracks().forEach(t => t.stop())
         document.querySelector('#canvas').remove()
         clearInterval(currentInterval)
     }
+
     function restart_video() {
         currentStream.getTracks().forEach(t => t.stop())
         document.querySelector('#canvas').remove()
         clearInterval(currentInterval)
         startVideo()
+
     }
 
-
-    function startVideo() {
-
-        var constraints
-
+    function changeCamera() {
         if (cameraSelector) {
             cameraSelector = false
             constraints = {
@@ -331,6 +333,10 @@
                 }
             }
         }
+        restart_video()
+    }
+
+    function startVideo() {
 
         navigator.getMedia(constraints,
             stream => video.srcObject = currentStream = stream,
@@ -356,11 +362,11 @@
             })
         } else {
             faceDetectorOptions = new faceapi.SsdMobilenetv1Options({
-            minConfidence: 0.20,
-            maxFaces: 20
-        })
+                minConfidence: 0.20,
+                maxFaces: 20
+            })
         }
-       
+
         // Hide loadbar
         change_message("Complete")
         hide_loadbar()
