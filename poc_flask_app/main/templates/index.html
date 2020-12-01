@@ -272,14 +272,17 @@
     //     // console.log(isMobile)
     //     loadModel()
     // })()
+
+
+    
     loadModel()
     async function loadModel() {
         if (isMobile) {
             await faceapi.nets.tinyFaceDetector.loadFromUri("{{ url_for('static', filename='models/') }}")
-            change_message("Loading Face Detector")
+            change_message("Loading Tiny Face Detector")
             change_message("Downloading Face Mask Model")
             model = await tf.loadLayersModel("{{ url_for('static', filename='models/tfjs_tiny/model.json') }}")
-            change_message("Loading Face Mask Model")
+            change_message("Loading Tiny Mask Model")
             // speed = 300
         } else {
             await faceapi.nets.ssdMobilenetv1.loadFromUri("{{ url_for('static', filename='models/') }}")
