@@ -1,6 +1,6 @@
 # Face Mask Detector
 
-![][face_mask.gif]
+![face_mask](https://user-images.githubusercontent.com/44000127/100808308-d105fa00-342b-11eb-9fe5-363e5c8745a1.gif)
 
 This is a deep learning project which is using face-api for face detection and using 
 Deep Learning with Tensorflow js, face-api.js, Flask and Keras. 
