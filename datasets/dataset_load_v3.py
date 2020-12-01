@@ -84,7 +84,6 @@ def load_data(test_size= 0.3, path = './dataset/', random_state = False):
     print("Repartiendo") 
     X_train = x[:split_size]
     X_test = x[split_size:]
-    X_test = X_test/255.
     Y_train = y[:split_size]
     Y_test = y[split_size:]
     
