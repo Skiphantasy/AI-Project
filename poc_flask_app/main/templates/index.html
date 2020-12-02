@@ -221,7 +221,7 @@
 
 <button id="toggleCamera" onclick="changeCamera()">Cam</button>
 <button id="toggleModel" onclick="changeModel()">Model</button>
-<img id="image_for_crop" alt="" style="width: auto; height: auto; min-width:96px; min-height: 96px; top: 0; right: 0; position: absolute;z-index: 100;">
+<!-- <img id="image_for_crop" alt="" style="width: auto; height: auto; min-width:96px; min-height: 96px; top: 0; right: 0; position: absolute;z-index: 100;"> -->
 <script>
     change_message("Downloading Face Detector")
     show_loadbar()
@@ -288,7 +288,7 @@
             await faceapi.nets.ssdMobilenetv1.loadFromUri("{{ url_for('static', filename='models/') }}")
             change_message("Loading Face Detector")
             change_message("Downloading Face Mask Model")
-            model = await tf.loadLayersModel("{{ url_for('static', filename='models/tfjs/old/model.json') }}")
+            model = await tf.loadLayersModel("{{ url_for('static', filename='models/tfjs/def/model.json') }}")
             change_message("Loading Face Mask Model")
 
             // speed = 500
@@ -381,10 +381,10 @@
 
             ctx.clearRect(0, 0, canvas.width, canvas.height)
 
-            resizedDetections.forEach(async (d, i) => {
+            detections.forEach(async (d, i) => {
                 await extractFaceFromBox(video, d._box, i)
                 const prediction = predictions[i]
-                const drawBox = new faceapi.draw.DrawBox(d._box, {
+                const drawBox = new faceapi.draw.DrawBox(resizedDetections[i]._box, {
                     boxColor: colors[prediction],
                     label: classification[prediction]
                 })
@@ -398,9 +398,9 @@
     async function extractFaceFromBox(inputImage, box, ind = 0) {
         const faceImage = await faceapi.extractFaces(inputImage, [new faceapi.Rect(box.x, box.y, box.width, box
             .height)])
-            
-
-document.getElementById('image_for_crop').src = faceImage[0].toDataURL();
+        
+        // show what is predicting
+        // document.getElementById('image_for_crop').src = faceImage[0].toDataURL();
         const result = await model.predict(preprocess(faceImage[0]))
         const data = result.dataSync()
         // const datasort = data.sort((a,b)=>{(b.toFixed(4)+0.0001)-(a.toFixed(4))});
